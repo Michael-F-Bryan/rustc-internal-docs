@@ -19,7 +19,7 @@ log() {
   if [ -z "$SYSTEM_LOG" ]; then
     echo "[$(date --rfc-3339=seconds)] $@" 1>&2
   else
-    logger "$@"
+    logger --tag rustc-internal-docs "$@"
   fi
 }
 
