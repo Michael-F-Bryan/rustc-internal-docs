@@ -10,9 +10,13 @@
 
 set -e
 
-TARGET_TRIPLE=$(rustup show | sed -e 's/Default host: \([^\s]*\)/\1/p' --quiet)
 RUST_DIR=/srv/github-backups/rust-lang/rust
 GIT_REPO="git@github.com:Michael-F-Bryan/rustc-internal-docs.git"
+
+TARGET_TRIPLE=$(rustup show | sed -e 's/Default host: \([^\s]*\)/\1/p' --quiet)
+if [ -z "$TARGET_TRIPLE" ]; then
+  TARGET_TRIPLE="x86_64-unknown-linux-gnu"
+fi
 
 
 log() {
@@ -39,11 +43,17 @@ fi
 
 if [ ! -f "./config.toml" ]; then
   cp "src/bootstrap/config.toml.example" "./config.toml"
-  sed -e "s/#compiler-docs = true/compiler-docs = true/" -i ./config.toml
+  sed -e "s/#compiler-docs .*/compiler-docs = true/" -i ./config.toml
+  sed -e "s/#docs .*/docs = true/" -i ./config.toml
 fi
 
 log "Generating documentation"
-./x.py doc --incremental
+
+crates=$(./x.py doc --help --verbose | grep './x.py doc src/' | awk '{ print($3) }' | uniq)
+for crate in $crates; do
+  log "Generating docs for $crate"
+  ./x.py doc $crate
+done
 log "Documentation generated"
 
 TEMP_DIR=$(mktemp -d)
