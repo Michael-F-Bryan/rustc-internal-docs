@@ -6,11 +6,13 @@ extern crate env_logger;
 extern crate log;
 #[macro_use]
 extern crate rustc_internal_docs;
+extern crate syslog;
 extern crate toml;
 
 use std::env;
 use log::LogLevel;
 use env_logger::LogBuilder;
+use syslog::Facility;
 use clap::Arg;
 use chrono::Local;
 use rustc_internal_docs::Config;
@@ -31,15 +33,6 @@ fn parse_args() -> Config {
 
     let matches = app_from_crate!()
         .arg(
-            Arg::with_name("token")
-                .short("t")
-                .long("token")
-                .takes_value(true)
-                .help(
-                    "Your GitHub API token (defaults to GITHUB_TOKEN env variable)",
-                ),
-        )
-        .arg(
             Arg::with_name("config-file")
                 .short("c")
                 .long("config")
@@ -53,10 +46,14 @@ fn parse_args() -> Config {
                 .multiple(true)
                 .help("Sets the verbosity level (repeat for more verbosity)"),
         )
+        .arg(Arg::with_name("syslog").short("s").long("syslog").help(
+            "Log to the system logger instead of stdout (also accepts the USE_SYSLOG env variable)",
+        ))
         .get_matches();
 
     let verbosity = matches.occurrences_of("verbose");
-    init_logger(verbosity);
+    let use_syslog = matches.is_present("syslog") || env::var("USE_SYSLOG").is_ok();
+    init_logger(verbosity, use_syslog);
 
     let config_file = matches.value_of("config-file").unwrap();
     let toml_contents = helpers::read_file(&config_file).unwrap();
@@ -69,7 +66,7 @@ fn parse_args() -> Config {
     config
 }
 
-fn init_logger(verbose: u64) {
+fn init_logger(verbose: u64, use_syslog: bool) {
     let log_level = match verbose {
         0 => LogLevel::Warn,
         1 => LogLevel::Info,
@@ -77,9 +74,17 @@ fn init_logger(verbose: u64) {
         _ => LogLevel::Trace,
     };
 
+    if use_syslog {
+        init_syslog(log_level);
+    } else {
+        init_env_logger(log_level);
+    }
+}
+
+fn init_env_logger(level: LogLevel) {
     let mut lb = LogBuilder::new();
 
-    lb.filter(Some("rustc_internal_docs"), log_level.to_log_level_filter())
+    lb.filter(Some("rustc_internal_docs"), level.to_log_level_filter())
         .format(|record| {
             format!(
                 "{} [{:5}] - {}",
@@ -95,4 +100,12 @@ fn init_logger(verbose: u64) {
     }
 
     lb.init().expect("Couldn't initialize env_logger");
+}
+
+fn init_syslog(level: LogLevel) {
+    syslog::init(
+        Facility::LOG_USER,
+        level.to_log_level_filter(),
+        Some(env!("CARGO_PKG_NAME")),
+    ).expect("Couldn't initialize syslog");
 }

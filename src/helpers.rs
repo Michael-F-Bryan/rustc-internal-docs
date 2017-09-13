@@ -46,10 +46,10 @@ macro_rules! backtrace {
 }
 
 pub fn print_backtrace(e: &Error, indent: usize) {
-    eprintln!("{}Error: {}", "\t".repeat(indent), e);
+    error!("{}Error: {}", "\t".repeat(indent), e);
 
     for cause in e.iter().skip(1) {
-        eprintln!("{}Caused By: {}", "\t".repeat(indent + 1), cause);
+        error!("{}Caused By: {}", "\t".repeat(indent + 1), cause);
     }
 }
 

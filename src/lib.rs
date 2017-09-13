@@ -152,7 +152,7 @@ fn update_rust_repo(root: &Path) -> Result<()> {
 /// if it doesn't already exist, and make sure we tell rustbuild to build *all*
 /// docs.
 fn setup_rustbuild_config_file(root: &Path) -> Result<()> {
-    info!("Making sure config.toml is set up correctly");
+    debug!("Making sure config.toml is set up correctly");
 
     let config_file = root.join("config.toml");
     let template = root.join("src/bootstrap/config.toml.example");
