@@ -131,7 +131,7 @@ pub fn execute_command<S: AsRef<str>>(cmd: S, cd_dir: Option<&Path>) -> Result<O
 
     if !output.status.success() {
         warn!("Command failed: {}", cmd);
-        print_output!(output);
+        print_output!(trace, output);
         bail!(ErrorKind::CommandFailed(cmd.to_string(), output));
     }
 
