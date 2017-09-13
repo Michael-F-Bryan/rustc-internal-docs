@@ -200,10 +200,10 @@ fn find_internal_crates(root: &Path) -> Result<Vec<String>> {
     for line in String::from_utf8_lossy(&output.stdout).lines() {
         if let Some(matches) = crate_pattern.captures(&line) {
             let name = &matches[1];
-            trace!("Found {}", name);
             crates.push(name.to_string());
         }
     }
 
+    debug!("Found {} crates: {}", crates.len(), crates.join(", "));
     Ok(crates)
 }
