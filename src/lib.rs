@@ -157,7 +157,7 @@ fn setup_rustbuild_config_file(root: &Path) -> Result<()> {
     debug!("Making sure config.toml is set up correctly");
 
     let config_file = root.join("config.toml");
-    let template = root.join("src/bootstrap/config.toml.example");
+    let template = root.join("config.toml.example");
 
     if !config_file.exists() {
         fs::copy(&template, &config_file).chain_err(|| {
