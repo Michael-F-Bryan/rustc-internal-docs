@@ -4,7 +4,6 @@ cache:
   - $TRAVIS_BUILD_DIR/target
   - $RUST_DIR
 before_script:
-- mkdir -p $RUST_DIR
 - echo "rust-dir = \"$RUST_DIR\"" > $CONFIG
 - echo git-repo = "\"https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG\"" >> $CONFIG
 - echo "[error-handling]" >> $CONFIG
