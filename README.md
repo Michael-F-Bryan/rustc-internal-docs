@@ -34,7 +34,7 @@ FLAGS:
     -v, --verbose    Sets the verbosity level (repeat for more verbosity)
 
 OPTIONS:
-    -c, --config <config-file>    The config file for rustc-internal-docs [default: /home/michael/.rustc-internal-docs.toml]
+    -c, --config <config-file>    The config file for rustc-internal-docs [default: /home/$USER/.rustc-internal-docs.toml]
 ```
 
 Then make sure you have a copy of the [config file] in your home directory.

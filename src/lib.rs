@@ -45,11 +45,13 @@ pub fn run(cfg: Config) -> Result<()> {
     info!("Starting documentation generation");
 
     if !cfg.stages.skip_git_update {
-        update_rust_repo(&cfg.rust_dir)?;
+        update_rust_repo(&cfg.rust_dir).chain_err(|| "Failed to update the rust repo")?;
     }
-    setup_rustbuild_config_file(&cfg.rust_dir)?;
+    setup_rustbuild_config_file(&cfg.rust_dir)
+        .chain_err(|| "Couldn't make sure the config.toml is set properly")?;
 
-    let crates = find_internal_crates(&cfg.rust_dir)?;
+    let crates = find_internal_crates(&cfg.rust_dir)
+        .chain_err(|| "Unable to get a list of the internal crates")?;
 
     let mut errors = Vec::new();
 
@@ -66,7 +68,7 @@ pub fn run(cfg: Config) -> Result<()> {
     }
 
     if !cfg.stages.skip_upload && (errors.is_empty() || cfg.error_handling.upload_with_errors) {
-        upload_docs(&cfg.rust_dir, &cfg.git_repo)?;
+        upload_docs(&cfg.rust_dir, &cfg.git_repo).chain_err(|| "Uploading docs failed")?;
     }
 
     if errors.is_empty() {
