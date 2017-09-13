@@ -9,6 +9,7 @@ before_script:
 - echo "[error-handling]" >> $CONFIG
 - echo "upload-with-errors = true" >> $CONFIG
 - cat $CONFIG
+- git clone https://github.com/rust-lang/rust $RUST_DIR --recurse-submodules
 script:
 - cargo build --verbose
 - cargo test --verbose
