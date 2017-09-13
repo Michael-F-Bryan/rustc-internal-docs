@@ -2,6 +2,10 @@
 authors = ["Michael Bryan <michaelfbryan@gmail.com>"]
 name = "rustc-internal-docs"
 version = "0.1.0"
+description = "A tool for generating your own copy of the internal compiler docs"
+license = "MIT"
+documentation = "https://docs.rs/rustc-internal-docs"
+repository = "https://github.com/Michael-F-Bryan/rustc-internal-docs"
 
 [[bin]]
 doc = false
