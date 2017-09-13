@@ -1,0 +1,10 @@
+rust-dir = "/srv/github-backups/rust-lang/rust"
+git-repo = "git@github.com:Michael-F-Bryan/rustc-internal-docs.git"
+
+[error-handling]
+upload-with-errors = true
+fail-fast = false
+
+[stages]
+skip-upload = false
+skip-git-update = false

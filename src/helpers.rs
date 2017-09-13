@@ -2,6 +2,8 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::io::Read;
 use std::fs::File;
+use copy_dir;
+use shlex;
 
 use errors::*;
 
@@ -82,17 +84,31 @@ macro_rules! print_output {
     }}
 }
 
+/// Pretty much just `cp -r $from $to`.
+pub fn recursive_copy<F: AsRef<Path>, T: AsRef<Path>>(from: F, to: T) -> Result<()> {
+    let mut errors = copy_dir::copy_dir(from, to)?;
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        // if there were any errors we'll blow up and pass it to the user
+        let an_error = errors.pop().unwrap();
+        bail!(an_error)
+    }
+}
+
 
 pub fn execute_command<S: AsRef<str>>(cmd: S, cd_dir: Option<&Path>) -> Result<Output> {
     let cmd = cmd.as_ref();
-    // FIXME: it's a good thing commands never contain spaces, right?
-    let parsed: Vec<_> = cmd.split_whitespace().collect();
+    let parsed = match shlex::split(cmd) {
+        Some(bits) => bits,
+        None => bail!("Invalid command"),
+    };
 
     if parsed.is_empty() {
         bail!("Can't execute an empty command");
     }
 
-    let mut command_builder = Command::new(parsed[0]);
+    let mut command_builder = Command::new(&parsed[0]);
 
     for arg in &parsed[1..] {
         command_builder.arg(arg);
@@ -165,5 +181,14 @@ mod tests {
         assert!(dummy_file.exists());
         cmd!(in temp.path(), "rm {}", dummy_file.display()).unwrap();
         assert!(!dummy_file.exists());
+    }
+
+    #[test]
+    fn command_with_spaces_in_it() {
+        let output = cmd!(r#"echo "Hello World""#).unwrap();
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(stdout.contains("Hello World"));
+        assert!(!stdout.contains('"'));
     }
 }

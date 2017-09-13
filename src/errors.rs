@@ -12,7 +12,7 @@ error_chain! {
                 ::helpers::pretty_print_return_code(output.status.code()),
                 cmd)
         }
-        DocGeneration(errors: Vec<Error>) {
+        DocGeneration(errors: Vec<(String, Error)>) {
             description("Documentation Generation Failed")
             display("Documentation generation failed with {} errors", errors.len())
         }

@@ -1,3 +1,5 @@
+extern crate chrono;
+extern crate copy_dir;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
@@ -5,7 +7,11 @@ extern crate log;
 extern crate regex;
 #[macro_use]
 extern crate serde_derive;
+extern crate shlex;
 extern crate tempdir;
+
+#[cfg(test)]
+extern crate toml;
 
 pub mod errors;
 mod config;
@@ -17,6 +23,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use tempdir::TempDir;
 use regex::Regex;
+use chrono::Local;
 
 use errors::*;
 pub use config::Config;
@@ -37,7 +44,9 @@ const RUST_GITHUB_REPO: &'static str = "https://github.com/rust-lang/rust";
 pub fn run(cfg: Config) -> Result<()> {
     info!("Starting documentation generation");
 
-    update_rust_repo(&cfg.rust_dir)?;
+    if !cfg.stages.skip_git_update {
+        update_rust_repo(&cfg.rust_dir)?;
+    }
     setup_rustbuild_config_file(&cfg.rust_dir)?;
 
     let crates = find_internal_crates(&cfg.rust_dir)?;
@@ -51,16 +60,27 @@ pub fn run(cfg: Config) -> Result<()> {
                 return Err(e);
             } else {
                 warn!("Error generating docs for {}, {}", krate, e);
-                errors.push(e);
+                errors.push((krate, e));
             }
         }
     }
 
+    if !cfg.stages.skip_upload && (errors.is_empty() || cfg.error_handling.upload_with_errors) {
+        upload_docs(&cfg.rust_dir, &cfg.git_repo)?;
+    }
+
     if errors.is_empty() {
-        upload_docs(&cfg.rust_dir, &cfg.git_repo)
+        info!("Documentation generation completed successfully");
+        Ok(())
     } else {
-        if cfg.error_handling.upload_with_errors {
-            upload_docs(&cfg.rust_dir, &cfg.git_repo)?;
+        info!(
+            "Documentation generation completed with {} errors",
+            errors.len()
+        );
+
+        debug!("Crates which errored:");
+        for &(ref krate, _) in &errors {
+            debug!("  {}", krate);
         }
 
         Err(ErrorKind::DocGeneration(errors).into())
@@ -91,10 +111,10 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
 
     let temp = TempDir::new("rustc-internal-docs")?;
     cmd!("git clone {} {}", git_repo, temp.path().display())?;
-    cmd!(in temp.path(), "git checkout -B gh-pages")?;
+    cmd!(in temp.path(), "git checkout gh-pages")?;
 
     debug!("Copying generated docs to {}", temp.path().display());
-    // cp -r docs_dir temp
+    helpers::recursive_copy(temp.path(), docs_dir)?;
 
     // Make a page to redirect people to rustc/index.html if it doesn't
     // already exist
@@ -105,11 +125,9 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
         File::create(index)?.write_all(redirect.as_bytes())?;
     }
 
-    panic!("We don't want to push just yet...");
     debug!("Pushing to GitHub pages");
     cmd!(in temp.path(), "git add .")?;
-    // FIXME: It'd be really nice if we had proper shell splitting right now...
-    cmd!(in temp.path(), "git commit -m auto-update")?;
+    cmd!(in temp.path(), r#"git commit -m "update {}""#, Local::now())?;
     cmd!(in temp.path(), "git push origin gh-pages")?;
     debug!("Docs uploaded");
 
