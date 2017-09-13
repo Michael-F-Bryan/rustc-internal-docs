@@ -7,8 +7,8 @@ before_script:
 - mkdir -p $RUST_DIR
 - echo "rust-dir = \"$RUST_DIR\"" > $CONFIG
 - echo git-repo = "\"https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG\"" >> $CONFIG
-- echo "[error-handling]" > $CONFIG
-- echo "upload-with-errors = true" > $CONFIG
+- echo "[error-handling]" >> $CONFIG
+- echo "upload-with-errors = true" >> $CONFIG
 - cat $CONFIG
 script:
 - cargo build --verbose
