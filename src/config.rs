@@ -16,7 +16,7 @@ pub struct ErrorHandling {
 impl Default for ErrorHandling {
     fn default() -> ErrorHandling {
         ErrorHandling {
-            fail_fast: true,
+            fail_fast: false,
             upload_with_errors: false,
         }
     }

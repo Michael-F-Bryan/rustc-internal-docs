@@ -3,11 +3,8 @@ extern crate error_chain;
 #[macro_use]
 extern crate log;
 extern crate regex;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-
-#[cfg(test)]
 extern crate tempdir;
 
 pub mod errors;
@@ -17,8 +14,9 @@ pub mod helpers;
 
 use std::path::Path;
 use std::fs::{self, File};
-use regex::Regex;
 use std::io::Write;
+use tempdir::TempDir;
+use regex::Regex;
 
 use errors::*;
 pub use config::Config;
@@ -73,13 +71,49 @@ pub fn run(cfg: Config) -> Result<()> {
 /// of the rust repo.
 fn generate_docs(name: &str, root: &Path) -> Result<()> {
     debug!("Generating docs for {}", name);
-    cmd!(in root, "./x.py doc --stage 1 {}", name)?;
+    cmd!(in root, "./x.py doc --stage 1 -v {}", name)?;
 
     Ok(())
 }
 
 fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
-    unimplemented!()
+    // FIXME: should probably not hard-code this...
+    let target = "x86_64-unknown-linux-gnu";
+
+    let docs_dir = root.join("build").join(target).join("crate-docs");
+
+    if !docs_dir.exists() {
+        bail!(
+            "Couldn't find {} ... were any docs even generated?",
+            docs_dir.display()
+        );
+    }
+
+    let temp = TempDir::new("rustc-internal-docs")?;
+    cmd!("git clone {} {}", git_repo, temp.path().display())?;
+    cmd!(in temp.path(), "git checkout -B gh-pages")?;
+
+    debug!("Copying generated docs to {}", temp.path().display());
+    // cp -r docs_dir temp
+
+    // Make a page to redirect people to rustc/index.html if it doesn't
+    // already exist
+    let index = temp.path().join("index.html");
+    if !index.exists() {
+        let redirect =
+            r#"<html><meta http-equiv="refresh" content="0; URL=rustc/index.html"></html>"#;
+        File::create(index)?.write_all(redirect.as_bytes())?;
+    }
+
+    panic!("We don't want to push just yet...");
+    debug!("Pushing to GitHub pages");
+    cmd!(in temp.path(), "git add .")?;
+    // FIXME: It'd be really nice if we had proper shell splitting right now...
+    cmd!(in temp.path(), "git commit -m auto-update")?;
+    cmd!(in temp.path(), "git push origin gh-pages")?;
+    debug!("Docs uploaded");
+
+    Ok(())
 }
 
 /// Do a `git clone` or `git pull` to make sure the Rust repo is up to date.

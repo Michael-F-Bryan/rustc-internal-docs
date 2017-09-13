@@ -9,10 +9,7 @@ error_chain! {
         CommandFailed(cmd: String, output: Output) {
             description("Command Execution Failed")
             display("Command failed{}, \"{}\"",
-                match output.status.code() {
-                    None => String::new(),
-                    Some(i) => format!(" with return code {}", i)
-                },
+                ::helpers::pretty_print_return_code(output.status.code()),
                 cmd)
         }
         DocGeneration(errors: Vec<Error>) {

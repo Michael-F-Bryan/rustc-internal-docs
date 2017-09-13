@@ -51,6 +51,15 @@ pub fn print_backtrace(e: &Error, indent: usize) {
     }
 }
 
+/// Print either "" or " with return code 1", depending on whether we got a
+/// return code.
+pub fn pretty_print_return_code(code: Option<i32>) -> String {
+    match code {
+        None => String::new(),
+        Some(i) => format!(" with return code {}", i),
+    }
+}
+
 
 /// Print the stdout and stderr of a `std::process::Output` at the specified
 /// logging level. The default is to print with `debug!()`.
@@ -63,7 +72,8 @@ macro_rules! print_output {
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 $level!("{}", line);
             }
-        } else {
+        } 
+        if !output.stderr.is_empty() {
             $level!("Stderr:");
             for line in String::from_utf8_lossy(&output.stderr).lines() {
                 $level!("{}", line);
@@ -78,7 +88,7 @@ pub fn execute_command<S: AsRef<str>>(cmd: S, cd_dir: Option<&Path>) -> Result<O
     // FIXME: it's a good thing commands never contain spaces, right?
     let parsed: Vec<_> = cmd.split_whitespace().collect();
 
-    if parsed.len() < 1 {
+    if parsed.is_empty() {
         bail!("Can't execute an empty command");
     }
 
@@ -98,9 +108,9 @@ pub fn execute_command<S: AsRef<str>>(cmd: S, cd_dir: Option<&Path>) -> Result<O
         .chain_err(|| format!("Command not found, {}", parsed[0]))?;
 
     debug!(
-        r#""{}" completed with return code {:?}"#,
+        r#""{}" completed{}"#,
         cmd,
-        output.status.code()
+        pretty_print_return_code(output.status.code())
     );
 
     if !output.status.success() {
