@@ -16,6 +16,27 @@ and run `cargo install`, or do
 $ cargo install --git https://github.com/Michael-F-Bryan/rustc-internal-docs
 ```
 
+Lets check to make sure everything is working correctly:
+
+```bash
+$ rustc-internal-docs --help
+rustc-internal-docs 0.1.0
+Michael Bryan <michaelfbryan@gmail.com>
+
+
+USAGE:
+    rustc-internal-docs [FLAGS] [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -s, --syslog     Log to the system logger instead of stdout (also accepts the USE_SYSLOG env variable)
+    -V, --version    Prints version information
+    -v, --verbose    Sets the verbosity level (repeat for more verbosity)
+
+OPTIONS:
+    -c, --config <config-file>    The config file for rustc-internal-docs [default: /home/michael/.rustc-internal-docs.toml]
+```
+
 Then make sure you have a copy of the [config file] in your home directory.
 
 ```bash
@@ -41,5 +62,12 @@ always have an up-to-date version of the docs.
 > stdout/stderr and that gets pretty annoying after a while.
 
 
+# Contributing
+
+If you have a feature request or bug fix, open up [an issue] and I'll see what
+I can do about it. Pull Requests are also welcome!
+
+
 [config file]: https://github.com/Michael-F-Bryan/rustc-internal-docs/blob/master/rustc-internal-docs.toml
 [old bash script]: https://github.com/Michael-F-Bryan/rustc-internal-docs/blob/5d397f1a79ad8e91aa5df7a485ce441499cb74b7/make-docs.sh
+[an issue]: https://github.com/Michael-F-Bryan/rustc-internal-docs/issues/new
