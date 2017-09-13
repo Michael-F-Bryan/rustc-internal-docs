@@ -1,5 +1,7 @@
 # Rustc Internal Docs
 
+[![Build Status](https://travis-ci.org/Michael-F-Bryan/rustc-internal-docs.svg?branch=master)](https://travis-ci.org/Michael-F-Bryan/rustc-internal-docs)
+
 A continually updated copy of `rustc`'s internals hosted by GitHub pages.
 
 https://michael-f-bryan.github.io/rustc-internal-docs/
