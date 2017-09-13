@@ -160,7 +160,10 @@ fn setup_rustbuild_config_file(root: &Path) -> Result<()> {
     let template = root.join("src/bootstrap/config.toml.example");
 
     if !config_file.exists() {
-        fs::copy(template, &config_file).chain_err(|| "Couldn't copy the template config")?;
+        fs::copy(template, &config_file).chain_err(
+            || "Couldn't copy the template config ({})",
+            template.display(),
+        )?;
     }
 
     let mut config_contents = helpers::read_file(&config_file)?;
