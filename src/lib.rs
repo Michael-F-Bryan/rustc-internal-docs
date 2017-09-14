@@ -116,7 +116,11 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
     cmd!(in temp.path(), "git checkout gh-pages")?;
 
     debug!("Copying generated docs to {}", temp.path().display());
-    helpers::recursive_copy(temp.path(), docs_dir)?;
+    for entry in docs_dir.read_dir()? {
+        if let Ok(entry) = entry {
+            helpers::recursive_copy(temp.path(), entry.path())?;
+        }
+    }
 
     // Make a page to redirect people to rustc/index.html if it doesn't
     // already exist
