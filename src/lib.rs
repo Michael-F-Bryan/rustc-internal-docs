@@ -116,11 +116,11 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
     cmd!(in temp.path(), "git checkout gh-pages")?;
 
     debug!("Copying generated docs to {}", temp.path().display());
-    for entry in docs_dir.read_dir()? {
-        if let Ok(entry) = entry {
-            helpers::recursive_copy(temp.path(), entry.path())?;
-        }
-    }
+    cmd!(
+        "rsync -a {}/ {}/",
+        docs_dir.display(),
+        temp.path().display()
+    )?;
 
     // Make a page to redirect people to rustc/index.html if it doesn't
     // already exist
@@ -133,7 +133,7 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
 
     debug!("Pushing to GitHub pages");
     cmd!(in temp.path(), "git add .")?;
-    cmd!(in temp.path(), r#"git commit -m "update {}""#, Local::now())?;
+    cmd!(in temp.path(), r#"git commit -m "updated documentation at {}""#, Local::now())?;
     cmd!(in temp.path(), "git push origin gh-pages")?;
     debug!("Docs uploaded");
 
