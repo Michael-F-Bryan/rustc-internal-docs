@@ -12,7 +12,7 @@ before_script:
 script:
 - cargo build --verbose
 - cargo test --verbose
-- cargo run -- -vv --config $CONFIG || echo "Pretending we're okay even if we failed"; exit 0
+- cargo run -- -v --config $CONFIG 
 env:
   global:
     - secure: ntz62YQ4f73nz/jTfb4G7x3jou8NshMkWPIAcxGRW18GXVfCQJj5fXjSHQlb/f2v6T20dfNiWprM/acP5aEHICfK9zPxuM7lrbDZCkFSX1w9bM1ikDwgT79/s+/ozREzJnhYJlupRoMSXMu0M2FM8NVaS2S4vlhuLmdt3XEDh45aJgxpuJvHKOBdtyhWLeq0ChfOLe3SM03OnWYN8E/HTObtCrdlBV5dvWs5C6SK+5SRkPr2i05FR7La4QaEfI0P2JN+hemVSzFW4XvJ6FDS1qW0Otfz3iPbU46r8hkeWqxQljHg47exCi+2K7fbw9AJLNRyfoFkBw7tkbUoTZyUS+E9BU/ixFhOThPoLQRoQOLv+0uCtrpAC9pMNKAuHY4vcBLCKc4jeWGGDe/agIEngNZqbj/1Bn0ZbN6mtH4zU3n7jIuxvxXkWsYMevxN1kHZ70C4eFmKN5ZBQcCTagO2JwPbrgRaTISbgglavXDUsCKhTCwz6ar8xAuEHizUdVkBP2rWiwWb6+sTG7oi+ynWqgOYzI5M0OxgE7VXM+/r8DYGfiulm4Xlkc0tMmiTp/IoRr9JK9uss6i/NSg1EjtvfBdN40JE2yTyTyWIUG6xyWuErKvEhNLM82+W+dEvvPWzVty7Y+3OlGUhkfTvzlb1NpKjCuWj8z4TCxpSZU5buek=
