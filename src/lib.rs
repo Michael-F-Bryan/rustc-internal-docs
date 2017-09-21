@@ -93,7 +93,7 @@ pub fn run(cfg: Config) -> Result<()> {
 /// of the rust repo.
 fn generate_docs(name: &str, root: &Path) -> Result<()> {
     debug!("Generating docs for {}", name);
-    cmd!(in root, "./x.py doc --stage 1 -v {}", name)?;
+    cmd!(in root, "./x.py doc --stage 2 -v {}", name)?;
 
     Ok(())
 }
@@ -126,8 +126,7 @@ fn upload_docs(root: &Path, git_repo: &str) -> Result<()> {
     // already exist
     let index = temp.path().join("index.html");
     if !index.exists() {
-        let redirect =
-            r#"<html><meta http-equiv="refresh" content="0; URL=rustc/index.html"></html>"#;
+        let redirect = r#"<html><meta http-equiv="refresh" content="0; URL=rustc/index.html"></html>"#;
         File::create(index)?.write_all(redirect.as_bytes())?;
     }
 
