@@ -6,13 +6,12 @@ extern crate env_logger;
 extern crate log;
 #[macro_use]
 extern crate rustc_internal_docs;
-extern crate syslog;
 extern crate toml;
 
 use std::env;
-use log::LogLevel;
-use env_logger::LogBuilder;
-use syslog::Facility;
+use std::io::Write;
+use log::Level;
+use env_logger::Builder;
 use clap::Arg;
 use chrono::Local;
 use rustc_internal_docs::Config;
@@ -46,14 +45,10 @@ fn parse_args() -> Config {
                 .multiple(true)
                 .help("Sets the verbosity level (repeat for more verbosity)"),
         )
-        .arg(Arg::with_name("syslog").short("s").long("syslog").help(
-            "Log to the system logger instead of stdout (also accepts the USE_SYSLOG env variable)",
-        ))
         .get_matches();
 
     let verbosity = matches.occurrences_of("verbose");
-    let use_syslog = matches.is_present("syslog") || env::var("USE_SYSLOG").is_ok();
-    init_logger(verbosity, use_syslog);
+    init_logger(verbosity);
 
     let config_file = matches.value_of("config-file").unwrap();
     let toml_contents = helpers::read_file(&config_file).unwrap();
@@ -66,27 +61,19 @@ fn parse_args() -> Config {
     config
 }
 
-fn init_logger(verbose: u64, use_syslog: bool) {
+fn init_logger(verbose: u64) {
     let log_level = match verbose {
-        0 => LogLevel::Warn,
-        1 => LogLevel::Info,
-        2 => LogLevel::Debug,
-        _ => LogLevel::Trace,
+        0 => Level::Warn,
+        1 => Level::Info,
+        2 => Level::Debug,
+        _ => Level::Trace,
     };
 
-    if use_syslog {
-        init_syslog(log_level);
-    } else {
-        init_env_logger(log_level);
-    }
-}
+    let mut lb = Builder::new();
 
-fn init_env_logger(level: LogLevel) {
-    let mut lb = LogBuilder::new();
-
-    lb.filter(Some("rustc_internal_docs"), level.to_log_level_filter())
-        .format(|record| {
-            format!(
+    lb.filter(Some("rustc_internal_docs"), log_level.to_level_filter())
+        .format(|buf, record| {
+            write!(buf,
                 "{} [{:5}] - {}",
                 Local::now().format("%Y-%m-%d %H:%M:%S"),
                 record.level(),
@@ -99,13 +86,6 @@ fn init_env_logger(level: LogLevel) {
         lb.parse(&filter);
     }
 
-    lb.init().expect("Couldn't initialize env_logger");
+    lb.init();
 }
 
-fn init_syslog(level: LogLevel) {
-    syslog::init(
-        Facility::LOG_USER,
-        level.to_log_level_filter(),
-        Some(env!("CARGO_PKG_NAME")),
-    ).expect("Couldn't initialize syslog");
-}
