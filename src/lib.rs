@@ -50,51 +50,21 @@ pub fn run(cfg: Config) -> Result<()> {
     setup_rustbuild_config_file(&cfg.rust_dir)
         .chain_err(|| "Couldn't make sure the config.toml is set properly")?;
 
-    let crates = find_internal_crates(&cfg.rust_dir)
-        .chain_err(|| "Unable to get a list of the internal crates")?;
-
-    let mut errors = Vec::new();
-
     info!("Generating documentation");
-    for krate in crates {
-        if let Err(e) = generate_docs(&krate, &cfg.rust_dir) {
-            if cfg.error_handling.fail_fast {
-                return Err(e);
-            } else {
-                warn!("Error generating docs for {}, {}", krate, e);
-                errors.push((krate, e));
-            }
-        }
-    }
+    generate_docs(&cfg.rust_dir)?;
 
-    if !cfg.stages.skip_upload && (errors.is_empty() || cfg.error_handling.upload_with_errors) {
+    if !cfg.stages.skip_upload {
         upload_docs(&cfg.rust_dir, &cfg.git_repo).chain_err(|| "Uploading docs failed")?;
     }
 
-    if errors.is_empty() {
-        info!("Documentation generation completed successfully");
-        Ok(())
-    } else {
-        info!(
-            "Documentation generation completed with {} errors",
-            errors.len()
-        );
-
-        debug!("Crates which errored:");
-        for &(ref krate, _) in &errors {
-            debug!("  {}", krate);
-        }
-
-        Err(ErrorKind::DocGeneration(errors).into())
-    }
+    info!("Documentation generation completed successfully");
+    Ok(())
 }
 
 /// Generate the documentation for the specified library in a local checkout
 /// of the rust repo.
-fn generate_docs(name: &str, root: &Path) -> Result<()> {
-    debug!("Generating docs for {}", name);
-    cmd!(in root, "./x.py doc --stage 2 -v {}", name)?;
-
+fn generate_docs(root: &Path) -> Result<()> {
+    cmd!(in root, "./x.py doc -v")?;
     Ok(())
 }
 
@@ -192,21 +162,3 @@ fn setup_rustbuild_config_file(root: &Path) -> Result<()> {
     Ok(())
 }
 
-fn find_internal_crates(root: &Path) -> Result<Vec<String>> {
-    debug!("Generating a list of internal crates to document");
-    let output = cmd!(in root, "./x.py doc --help --verbose")?;
-
-    let mut crates = Vec::new();
-
-    let crate_pattern = Regex::new(r"\./x\.py doc (src/[^\s]+)").unwrap();
-
-    for line in String::from_utf8_lossy(&output.stdout).lines() {
-        if let Some(matches) = crate_pattern.captures(&line) {
-            let name = &matches[1];
-            crates.push(name.to_string());
-        }
-    }
-
-    debug!("Found {} crates: {}", crates.len(), crates.join(", "));
-    Ok(crates)
-}

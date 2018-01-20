@@ -11,8 +11,6 @@ pub struct Config {
     pub rust_dir: PathBuf,
     /// The git repository who's GitHub Pages to push to.
     pub git_repo: String,
-    /// How errors are handled.
-    pub error_handling: ErrorHandling,
     /// Tweak which steps are run.
     pub stages: Stages,
 }
@@ -34,7 +32,6 @@ impl Default for Config {
         Config {
             rust_dir: PathBuf::from("/tmp/rust-lang/rust"),
             git_repo: String::from("git@github.com:Michael-F-Bryan/rustc-internal-docs.git"),
-            error_handling: ErrorHandling::default(),
             stages: Stages::default(),
         }
     }
@@ -49,20 +46,6 @@ pub struct Stages {
     pub skip_git_update: bool,
     pub skip_upload: bool,
 }
-
-/// How should we deal with errors?
-#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
-#[serde(default)]
-#[serde(rename = "error-handling")]
-#[serde(rename_all = "kebab-case")]
-pub struct ErrorHandling {
-    /// Abort at the first error.
-    pub fail_fast: bool,
-    /// If there were errors generating docs for some of the crates, do we
-    /// still upload to GitHub pages?
-    pub upload_with_errors: bool,
-}
-
 
 #[cfg(test)]
 mod tests {
