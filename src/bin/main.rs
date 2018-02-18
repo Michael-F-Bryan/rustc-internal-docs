@@ -73,7 +73,7 @@ fn init_logger(verbose: u64) {
 
     lb.filter(Some("rustc_internal_docs"), log_level.to_level_filter())
         .format(|buf, record| {
-            write!(buf,
+            writeln!(buf,
                 "{} [{:5}] - {}",
                 Local::now().format("%Y-%m-%d %H:%M:%S"),
                 record.level(),
