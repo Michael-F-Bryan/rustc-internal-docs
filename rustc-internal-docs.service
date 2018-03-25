@@ -1,0 +1,6 @@
+[Unit]
+Description = Generate Rustc internal docs
+
+[Service]
+ExecStart=/home/michael/.cargo/bin/rustc-internal-docs -v
+User=michael

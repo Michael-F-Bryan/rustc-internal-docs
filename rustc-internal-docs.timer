@@ -1,0 +1,10 @@
+[Unit]
+Description=Run rustc-internal-docs daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true     
+RandomizedDelaySec=3600
+ 
+[Install]
+WantedBy=timers.target
