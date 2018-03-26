@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SplitWhitespace","An iterator over the non-whitespace substrings of a string, separated by any amount of whitespace."],["Utf16Encoder","Iterator adaptor for encoding `char`s to UTF-16."]],"trait":[["UnicodeStr","Methods for Unicode string slices"]]});
